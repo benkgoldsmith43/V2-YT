@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="lock.js"></script>
+<script src="/api/config"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0b">
+<title>CFA Study</title>
+<script src="topbar.js" defer></script>
+<style>
+:root {
+  --bg: #0a0a0b;
+  --bg-card: #111113;
+  --text-1: #ffffff;
+  --text-2: rgba(255,255,255,0.6);
+  --text-3: rgba(255,255,255,0.4);
+  --border: rgba(255,255,255,0.06);
+  --border-strong: rgba(255,255,255,0.14);
+  --accent: #a78bfa;
+  --good: #6ee7b7;
+  --warn: #fbbf24;
+  --bad: #ff8a8a;
+  --font: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, SF Mono, Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: var(--bg);
+  color: var(--text-1);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  min-height: 100vh;
+  padding: max(20px, env(safe-area-inset-top)) 16px 80px;
+}
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: radial-gradient(circle at 75% 10%, rgba(129,140,248,0.12), transparent 45%),
+              radial-gradient(circle at 20% 85%, rgba(167,139,250,0.07), transparent 50%);
+  filter: blur(40px);
+  pointer-events: none; z-index: -1;
+}
+.page { max-width: 700px; margin: 0 auto; }
+
+.page-title {
+  font-size: 26px; font-weight: 700; letter-spacing: -0.025em;
+  background: linear-gradient(135deg, #c4b5fd 0%, #818cf8 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0 0 4px;
+}
+.page-sub { font-size: 13px; color: var(--text-3); margin-bottom: 20px; }
+
+.section-title {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--text-3);
+  margin: 24px 0 10px;
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px;
+  margin-bottom: 12px;
+}
+
+/* ===== COUNTDOWN ===== */
+.countdown-row { display: flex; align-items: center; gap: 16px; }
+.countdown-big {
+  font-size: 52px; font-weight: 800; letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  background: linear-gradient(135deg, #c4b5fd, #818cf8);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1; flex-shrink: 0;
+}
+.countdown-info { flex: 1; min-width: 0; }
+.countdown-label { font-size: 13px; color: var(--text-2); margin-bottom: 6px; }
+.countdown-inputs { display: flex; gap: 8px; flex-wrap: wrap; }
+.countdown-date-input {
+  flex: 1; min-width: 130px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border-strong);
+  color: var(--text-2); border-radius: 8px;
+  padding: 7px 10px; font-size: 12px;
+  font-family: var(--font-mono); outline: none;
+}
+.countdown-date-input:focus { border-color: rgba(167,139,250,0.5); }
+.countdown-date-label { font-size: 11px; color: var(--text-3); margin-bottom: 3px; }
+.progress-bar-wrap {
+  margin-top: 14px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 99px; height: 6px; overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #818cf8, #a78bfa);
+  border-radius: 99px; transition: width 0.5s ease;
+}
+.progress-bar-labels {
+  display: flex; justify-content: space-between;
+  font-size: 11px; color: var(--text-3); margin-top: 6px;
+}
+
+/* ===== TIMER ===== */
+.timer-mode-row {
+  display: flex; justify-content: center; gap: 8px; margin-bottom: 14px;
+}
+.timer-mode-btn {
+  padding: 6px 14px; border-radius: 99px;
+  border: 1px solid var(--border-strong);
+  background: transparent; color: var(--text-2);
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  transition: all 0.15s; font-family: var(--font);
+}
+.timer-mode-btn.active {
+  background: rgba(167,139,250,0.15);
+  border-color: rgba(167,139,250,0.4);
+  color: #c4b5fd;
+}
+.timer-display {
+  text-align: center;
+  font-size: 64px; font-weight: 800;
+  font-variant-numeric: tabular-nums; letter-spacing: -0.04em;
+  color: var(--text-1); font-family: var(--font-mono);
+  margin: 8px 0;
+}
+.timer-display.running { color: #c4b5fd; }
+.timer-controls {
+  display: flex; justify-content: center; align-items: center; gap: 12px;
+}
+.timer-btn {
+  width: 52px; height: 52px; border-radius: 50%;
+  border: 1px solid var(--border-strong);
+  background: rgba(255,255,255,0.04);
+  color: var(--text-1); font-size: 20px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; font-family: var(--font);
+}
+.timer-btn.primary {
+  width: 64px; height: 64px; font-size: 24px;
+  background: linear-gradient(135deg, rgba(167,139,250,0.2), rgba(129,140,248,0.2));
+  border-color: rgba(167,139,250,0.4);
+}
+.timer-btn:active { transform: scale(0.92); }
+.timer-stats {
+  display: flex; justify-content: center; gap: 28px; margin-top: 16px;
+}
+.timer-stat { text-align: center; }
+.timer-stat-val {
+  font-size: 20px; font-weight: 700; color: var(--text-1);
+  font-variant-numeric: tabular-nums;
+}
+.timer-stat-lbl { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+
+/* ===== TOPICS ===== */
+.topics-overall {
+  font-size: 13px; color: var(--text-3);
+  text-align: right; margin-bottom: 16px;
+}
+.topic-group { margin-bottom: 18px; }
+.topic-group:last-child { margin-bottom: 0; }
+.topic-group-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 6px; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.topic-group-name { font-size: 13px; font-weight: 700; color: var(--text-2); }
+.topic-pct { font-size: 12px; color: var(--accent); font-weight: 700; font-variant-numeric: tabular-nums; }
+.topic-bar-wrap {
+  background: rgba(255,255,255,0.05);
+  border-radius: 99px; height: 3px; margin-bottom: 8px; overflow: hidden;
+}
+.topic-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #818cf8, #a78bfa);
+  border-radius: 99px; transition: width 0.4s ease;
+}
+.topic-items { display: none; }
+.topic-items.open { display: block; }
+.topic-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.topic-item:last-child { border-bottom: none; }
+.topic-check {
+  width: 18px; height: 18px; border-radius: 5px;
+  border: 1.5px solid var(--border-strong);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: all 0.15s;
+}
+.topic-item.done .topic-check {
+  background: linear-gradient(135deg, #818cf8, #a78bfa);
+  border-color: transparent;
+}
+.topic-check-icon { display: none; font-size: 11px; line-height: 1; color: #fff; }
+.topic-item.done .topic-check-icon { display: block; }
+.topic-name { font-size: 14px; color: var(--text-2); flex: 1; line-height: 1.3; }
+.topic-item.done .topic-name { color: var(--text-3); text-decoration: line-through; }
+
+/* ===== SCORES ===== */
+.score-pass-info {
+  display: flex; justify-content: space-between;
+  font-size: 12px; color: var(--text-3);
+  margin-bottom: 12px;
+}
+.score-avg-val { font-weight: 700; }
+.score-chart-wrap {
+  position: relative; height: 90px;
+  margin-bottom: 14px;
+}
+.score-threshold-line {
+  position: absolute; left: 0; right: 0;
+  border-top: 1px dashed rgba(251,191,36,0.4);
+}
+.score-chart {
+  display: flex; align-items: flex-end;
+  gap: 4px; height: 80px;
+}
+.score-bar-wrap {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; gap: 3px; justify-content: flex-end;
+}
+.score-bar {
+  width: 100%; border-radius: 4px 4px 0 0;
+  min-height: 4px; transition: height 0.4s ease;
+  background: linear-gradient(180deg, #818cf8, #a78bfa);
+}
+.score-bar.fail { background: linear-gradient(180deg, #ff8a8a, #f87171); }
+.score-bar-val { font-size: 10px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.score-bar-lbl {
+  font-size: 9px; color: var(--text-3);
+  max-width: 40px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  text-align: center;
+}
+.score-add-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.score-input {
+  flex: 1; min-width: 80px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border-strong);
+  color: var(--text-1); border-radius: 10px;
+  padding: 10px 12px; font-size: 14px; outline: none;
+  font-family: var(--font);
+}
+.score-input:focus { border-color: rgba(167,139,250,0.5); }
+.score-submit-btn {
+  padding: 10px 18px; border-radius: 10px; border: none;
+  background: linear-gradient(135deg, rgba(167,139,250,0.3), rgba(129,140,248,0.3));
+  color: #c4b5fd; font-weight: 700; font-size: 14px;
+  cursor: pointer; transition: all 0.15s; font-family: var(--font);
+}
+.score-submit-btn:active { transform: scale(0.95); }
+.score-history { margin-top: 12px; }
+.score-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 7px 0; border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.score-row:last-child { border-bottom: none; }
+.score-row-lbl { color: var(--text-2); }
+.score-row-val { font-weight: 700; font-variant-numeric: tabular-nums; }
+.score-row-val.pass { color: var(--good); }
+.score-row-val.fail { color: var(--bad); }
+.score-del { color: var(--text-3); cursor: pointer; padding: 0 6px; font-size: 16px; }
+
+/* ===== AI TUTOR ===== */
+.tutor-key-bar { display: flex; gap: 8px; margin-bottom: 14px; }
+.tutor-key-input {
+  flex: 1;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border-strong);
+  color: var(--text-2); border-radius: 10px;
+  padding: 10px 13px; font-size: 13px; outline: none;
+  font-family: var(--font);
+}
+.tutor-key-input:focus { border-color: rgba(167,139,250,0.5); }
+.tutor-key-save {
+  padding: 0 16px;
+  background: linear-gradient(135deg, #818cf8, #a78bfa);
+  border: none; border-radius: 10px;
+  color: #fff; font-weight: 700; font-size: 13px;
+  cursor: pointer; font-family: var(--font);
+}
+.tutor-key-note { font-size: 11px; color: var(--text-3); margin-bottom: 14px; }
+.tutor-key-note a { color: #818cf8; text-decoration: none; }
+.tutor-chips {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;
+}
+.tutor-chip {
+  padding: 5px 11px; border-radius: 99px;
+  border: 1px solid var(--border-strong);
+  background: rgba(255,255,255,0.03);
+  color: var(--text-2); font-size: 12px;
+  cursor: pointer; transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  font-family: var(--font);
+}
+.tutor-chip:active { border-color: rgba(167,139,250,0.4); color: #c4b5fd; }
+.tutor-messages {
+  min-height: 60px; max-height: 400px; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 10px;
+  margin-bottom: 12px; overscroll-behavior: contain;
+}
+.tutor-msg {
+  padding: 11px 14px; border-radius: 12px;
+  font-size: 14px; line-height: 1.6; max-width: 94%;
+  white-space: pre-wrap; word-break: break-word;
+}
+.tutor-msg.user {
+  align-self: flex-end;
+  background: rgba(167,139,250,0.15);
+  border: 1px solid rgba(167,139,250,0.25);
+  color: var(--text-1);
+}
+.tutor-msg.assistant {
+  align-self: flex-start;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+}
+.tutor-msg.thinking { opacity: 0.5; font-style: italic; }
+.tutor-composer { display: flex; gap: 8px; }
+.tutor-input {
+  flex: 1;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border-strong);
+  color: var(--text-1); border-radius: 12px;
+  padding: 12px 14px; font-size: 14px; outline: none;
+  font-family: var(--font);
+}
+.tutor-input:focus { border-color: rgba(167,139,250,0.5); }
+.tutor-send {
+  width: 46px; height: 46px;
+  background: linear-gradient(135deg, #818cf8, #a78bfa);
+  border: none; border-radius: 12px;
+  color: #fff; font-size: 20px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: opacity 0.15s, transform 0.1s;
+}
+.tutor-send:active { transform: scale(0.93); }
+.tutor-send:disabled { opacity: 0.4; }
+.tutor-clear {
+  font-size: 11px; color: var(--text-3); cursor: pointer;
+  text-align: right; margin-top: 8px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (max-width: 480px) {
+  body { padding: 14px 12px 80px; }
+  .countdown-big { font-size: 40px; }
+  .timer-display { font-size: 48px; }
+  .timer-stats { gap: 16px; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1 class="page-title">CFA Level II</h1>
+  <p class="page-sub">Study tracker · timer · AI tutor</p>
+
+  <!-- ===== 1. EXAM COUNTDOWN ===== -->
+  <div class="section-title">Exam Countdown</div>
+  <div class="card">
+    <div class="countdown-row">
+      <div class="countdown-big" id="cntDays">—</div>
+      <div class="countdown-info">
+        <div class="countdown-label" id="cntLabel">days until exam</div>
+        <div class="countdown-inputs">
+          <div style="flex:1;min-width:130px;">
+            <div class="countdown-date-label">Exam date</div>
+            <input type="date" class="countdown-date-input" id="examDateInput">
+          </div>
+          <div style="flex:1;min-width:130px;">
+            <div class="countdown-date-label">Study start</div>
+            <input type="date" class="countdown-date-input" id="studyStartInput">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="cntBar" style="width:0%"></div>
+    </div>
+    <div class="progress-bar-labels">
+      <span id="cntStartLbl">Set dates above</span>
+      <span id="cntPct"></span>
+    </div>
+  </div>
+
+  <!-- ===== 2. STUDY TIMER ===== -->
+  <div class="section-title">Study Timer</div>
+  <div class="card">
+    <div class="timer-mode-row">
+      <button class="timer-mode-btn active" data-mode="focus" onclick="setMode('focus')">Focus 25m</button>
+      <button class="timer-mode-btn" data-mode="short" onclick="setMode('short')">Break 5m</button>
+      <button class="timer-mode-btn" data-mode="long" onclick="setMode('long')">Long 15m</button>
+    </div>
+    <div class="timer-display" id="timerDisplay">25:00</div>
+    <div class="timer-controls">
+      <button class="timer-btn" onclick="resetTimer()" title="Reset">↺</button>
+      <button class="timer-btn primary" id="timerPlayBtn" onclick="toggleTimer()">▶</button>
+      <button class="timer-btn" onclick="skipTimer()" title="Skip">⏭</button>
+    </div>
+    <div class="timer-stats">
+      <div class="timer-stat">
+        <div class="timer-stat-val" id="timerSessions">0</div>
+        <div class="timer-stat-lbl">sessions today</div>
+      </div>
+      <div class="timer-stat">
+        <div class="timer-stat-val" id="timerToday">0h 0m</div>
+        <div class="timer-stat-lbl">today</div>
+      </div>
+      <div class="timer-stat">
+        <div class="timer-stat-val" id="timerWeek">0h</div>
+        <div class="timer-stat-lbl">this week</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 3. TOPIC PROGRESS ===== -->
+  <div class="section-title">Topic Progress</div>
+  <div class="card" id="topicsCard"></div>
+
+  <!-- ===== 4. MOCK SCORES ===== -->
+  <div class="section-title">Mock Exam Scores</div>
+  <div class="card">
+    <div class="score-pass-info">
+      <span>Pass threshold: 70%</span>
+      <span>Avg: <span class="score-avg-val" id="scoreAvg">—</span></span>
+    </div>
+    <div class="score-chart-wrap" id="scoreChartWrap">
+      <div class="score-chart" id="scoreChart">
+        <div style="width:100%;text-align:center;color:var(--text-3);font-size:13px;align-self:center;">
+          No scores yet — log your first mock below
+        </div>
+      </div>
+    </div>
+    <div class="score-add-row">
+      <input class="score-input" id="scoreInput" type="number" min="0" max="100"
+             placeholder="Score %" inputmode="numeric" style="max-width:110px;">
+      <input class="score-input" id="scoreLabelInput" type="text" placeholder="Label (optional)">
+      <button class="score-submit-btn" onclick="addScore()">Add</button>
+    </div>
+    <div class="score-history" id="scoreHistory"></div>
+  </div>
+
+  <!-- ===== 5. AI TUTOR ===== -->
+  <div class="section-title">AI Tutor</div>
+  <div class="card">
+    <div id="tutorKeySection">
+      <div class="tutor-key-bar">
+        <input class="tutor-key-input" id="tutorKeyInput" type="password"
+               placeholder="Paste Anthropic API key (sk-ant-…)" autocomplete="off">
+        <button class="tutor-key-save" onclick="saveKey()">Save</button>
+      </div>
+      <div class="tutor-key-note">
+        Key stored only in this browser. Get one at
+        <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>.
+        Uses claude-haiku-4-5 — very low cost.
+      </div>
+    </div>
+    <div class="tutor-chips">
+      <span class="tutor-chip" onclick="quickAsk('Explain the dividend discount model variants tested on CFA L2: Gordon growth, multi-stage, H-model. Include formulas.')">DDM</span>
+      <span class="tutor-chip" onclick="quickAsk('Walk me through residual income valuation step by step with a worked example.')">RI Valuation</span>
+      <span class="tutor-chip" onclick="quickAsk('Explain FCFE vs FCFF: how to calculate each, and when to use each in equity valuation.')">FCF</span>
+      <span class="tutor-chip" onclick="quickAsk('Explain credit default swaps: structure, pricing, and how they are tested on CFA L2.')">CDS</span>
+      <span class="tutor-chip" onclick="quickAsk('Term structure of interest rates: explain expectations, liquidity preference, and market segmentation theories and their implications for the yield curve.')">Term Structure</span>
+      <span class="tutor-chip" onclick="quickAsk('What are the most commonly tested Ethics violations on CFA L2 vignettes? Give me the top traps.')">Ethics traps</span>
+      <span class="tutor-chip" onclick="quickAsk('Explain FRA: intercorporate investments — how to account for investments under cost, equity method, and consolidation.')">FRA: Intercorp</span>
+      <span class="tutor-chip" onclick="quickAsk('Give me a CFA L2-style item set question on equity valuation with a worked solution.')">Practice Q</span>
+    </div>
+    <div class="tutor-messages" id="tutorMessages">
+      <div class="tutor-msg assistant">Hi! I'm your CFA Level II tutor. Ask me anything — formulas, concepts, vignette walkthroughs, or practice questions. Add your API key above to unlock responses.</div>
+    </div>
+    <div class="tutor-composer">
+      <input class="tutor-input" id="tutorInput"
+             placeholder="Ask a CFA L2 question…"
+             onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendTutor();}">
+      <button class="tutor-send" id="tutorSendBtn" onclick="sendTutor()">↑</button>
+    </div>
+    <div class="tutor-clear" onclick="clearChat()">Clear conversation</div>
+  </div>
+
+</div><!-- .page -->
+
+<script>
+// ── Storage helpers ──────────────────────────────────────────
+const LS = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+};
+function todayKey() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function weekStartKey() {
+  const d = new Date(); d.setDate(d.getDate() - d.getDay());
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+// ── Topic data ───────────────────────────────────────────────
+const TOPICS = [
+  { id:'ethics', name:'Ethics & Professional Standards', items:[
+    { id:'eth1', name:'Code of Ethics & Standards of Professional Conduct' },
+    { id:'eth2', name:'GIPS' },
+    { id:'eth3', name:'Ethics application & case studies' },
+  ]},
+  { id:'quant', name:'Quantitative Methods', items:[
+    { id:'q1', name:'Multiple regression' },
+    { id:'q2', name:'Time-series analysis' },
+    { id:'q3', name:'Machine learning' },
+  ]},
+  { id:'econ', name:'Economics', items:[
+    { id:'e1', name:'Currency exchange rates' },
+    { id:'e2', name:'Economic growth & development' },
+    { id:'e3', name:'Economics of regulation' },
+  ]},
+  { id:'fra', name:'Financial Reporting & Analysis', items:[
+    { id:'f1', name:'Intercorporate investments' },
+    { id:'f2', name:'Employee compensation (pensions)' },
+    { id:'f3', name:'Multinational operations' },
+    { id:'f4', name:'Analysis of financial institutions' },
+    { id:'f5', name:'Evaluating quality of financial reports' },
+  ]},
+  { id:'corp', name:'Corporate Issuers', items:[
+    { id:'c1', name:'Capital structure' },
+    { id:'c2', name:'Dividends & share repurchases' },
+    { id:'c3', name:'Corporate governance & ESG' },
+  ]},
+  { id:'equity', name:'Equity Valuation', items:[
+    { id:'eq1', name:'Equity valuation: applications & processes' },
+    { id:'eq2', name:'Discounted dividend valuation (DDM)' },
+    { id:'eq3', name:'Free cash flow valuation (FCFE / FCFF)' },
+    { id:'eq4', name:'Market-based valuation (P/E, EV/EBITDA, etc.)' },
+    { id:'eq5', name:'Residual income valuation' },
+    { id:'eq6', name:'Private company valuation' },
+  ]},
+  { id:'fi', name:'Fixed Income', items:[
+    { id:'fi1', name:'Term structure & interest rate dynamics' },
+    { id:'fi2', name:'Arbitrage-free valuation framework' },
+    { id:'fi3', name:'Bonds with embedded options' },
+    { id:'fi4', name:'Credit analysis models' },
+    { id:'fi5', name:'Credit default swaps (CDS)' },
+    { id:'fi6', name:'Mortgage-backed security analysis' },
+  ]},
+  { id:'deriv', name:'Derivatives', items:[
+    { id:'d1', name:'Pricing & valuation of forward commitments' },
+    { id:'d2', name:'Valuation of contingent claims (options)' },
+  ]},
+  { id:'alts', name:'Alternative Investments', items:[
+    { id:'a1', name:'Private & publicly traded real estate' },
+    { id:'a2', name:'Private equity valuation' },
+    { id:'a3', name:'Commodities & commodity derivatives' },
+  ]},
+  { id:'pm', name:'Portfolio Management', items:[
+    { id:'p1', name:'Exchange-traded funds (ETFs)' },
+    { id:'p2', name:'Multifactor models' },
+    { id:'p3', name:'Measuring & managing market risk (VaR)' },
+    { id:'p4', name:'Overview & principles of asset allocation' },
+  ]},
+];
+
+// ── Topic render ─────────────────────────────────────────────
+let openGroups = LS.get('cfa:open_groups', {});
+
+function toggleGroup(id) {
+  openGroups[id] = !openGroups[id];
+  LS.set('cfa:open_groups', openGroups);
+  renderTopics();
+}
+
+function toggleTopic(id, e) {
+  e.stopPropagation();
+  const state = LS.get('cfa:topics', {});
+  state[id] = !state[id];
+  LS.set('cfa:topics', state);
+  renderTopics();
+}
+
+function renderTopics() {
+  const state = LS.get('cfa:topics', {});
+  const card = document.getElementById('topicsCard');
+  let totalDone = 0, totalAll = 0;
+
+  const html = TOPICS.map(g => {
+    const done = g.items.filter(i => state[i.id]).length;
+    const all = g.items.length;
+    totalDone += done; totalAll += all;
+    const pct = all ? Math.round(done/all*100) : 0;
+    const isOpen = openGroups[g.id];
+
+    const items = g.items.map(i => {
+      const checked = !!state[i.id];
+      return `<div class="topic-item${checked?' done':''}" onclick="toggleTopic('${i.id}',event)">
+        <div class="topic-check"><span class="topic-check-icon">✓</span></div>
+        <div class="topic-name">${i.name}</div>
+      </div>`;
+    }).join('');
+
+    return `<div class="topic-group">
+      <div class="topic-group-header" onclick="toggleGroup('${g.id}')">
+        <span class="topic-group-name">${g.name}</span>
+        <span class="topic-pct">${done}/${all} ${isOpen?'▲':'▼'}</span>
+      </div>
+      <div class="topic-bar-wrap"><div class="topic-bar-fill" style="width:${pct}%"></div></div>
+      <div class="topic-items${isOpen?' open':''}">${items}</div>
+    </div>`;
+  }).join('');
+
+  const overallPct = totalAll ? Math.round(totalDone/totalAll*100) : 0;
+  card.innerHTML = `<div class="topics-overall">${totalDone}/${totalAll} topics complete — ${overallPct}%</div>${html}`;
+}
+
+// ── Exam countdown ───────────────────────────────────────────
+function renderCountdown() {
+  const examDate  = LS.get('cfa:exam_date', '');
+  const studyStart = LS.get('cfa:study_start', '');
+
+  const examInput  = document.getElementById('examDateInput');
+  const startInput = document.getElementById('studyStartInput');
+  if (examDate)   examInput.value  = examDate;
+  if (studyStart) startInput.value = studyStart;
+
+  const daysEl   = document.getElementById('cntDays');
+  const barEl    = document.getElementById('cntBar');
+  const pctEl    = document.getElementById('cntPct');
+  const startLbl = document.getElementById('cntStartLbl');
+
+  if (!examDate) { daysEl.textContent = '—'; return; }
+
+  const now  = new Date(); now.setHours(0,0,0,0);
+  const exam = new Date(examDate + 'T00:00:00');
+  const diff = Math.ceil((exam - now) / 86400000);
+  daysEl.textContent = Math.max(0, diff);
+
+  if (studyStart) {
+    const start = new Date(studyStart + 'T00:00:00');
+    const total   = Math.ceil((exam - start) / 86400000);
+    const elapsed = Math.ceil((now  - start) / 86400000);
+    const pct = Math.min(100, Math.max(0, Math.round(elapsed/total*100)));
+    barEl.style.width = pct + '%';
+    pctEl.textContent = pct + '% through study period';
+    startLbl.textContent = start.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  }
+}
+
+document.getElementById('examDateInput').addEventListener('change', e => {
+  LS.set('cfa:exam_date', e.target.value);
+  renderCountdown();
+});
+document.getElementById('studyStartInput').addEventListener('change', e => {
+  LS.set('cfa:study_start', e.target.value);
+  renderCountdown();
+});
+
+// ── Timer ────────────────────────────────────────────────────
+const MODES = { focus: 25*60, short: 5*60, long: 15*60 };
+let timerMode = 'focus', timerLeft = MODES.focus;
+let timerRunning = false, timerInterval = null, timerStartedAt = null;
+
+function setMode(m) {
+  clearInterval(timerInterval); timerRunning = false;
+  timerMode = m; timerLeft = MODES[m];
+  document.querySelectorAll('.timer-mode-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.mode === m));
+  document.getElementById('timerPlayBtn').textContent = '▶';
+  document.getElementById('timerDisplay').classList.remove('running');
+  renderTimerDisplay();
+}
+
+function renderTimerDisplay() {
+  const m = Math.floor(timerLeft/60), s = timerLeft%60;
+  document.getElementById('timerDisplay').textContent =
+    String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+}
+
+function renderTimerStats() {
+  const tk = todayKey(), ws = weekStartKey();
+  const sessions = LS.get('cfa:sessions', {});
+  const todaySess = sessions[tk] || [];
+  const todayMins = todaySess.reduce((a,v) => a+v, 0);
+  let weekMins = 0;
+  for (const [k,v] of Object.entries(sessions)) {
+    if (k >= ws) weekMins += v.reduce((a,x) => a+x, 0);
+  }
+  document.getElementById('timerSessions').textContent = todaySess.length;
+  document.getElementById('timerToday').textContent = Math.floor(todayMins/60) + 'h ' + (todayMins%60) + 'm';
+  document.getElementById('timerWeek').textContent = Math.floor(weekMins/60) + 'h';
+}
+
+function toggleTimer() {
+  if (timerRunning) {
+    clearInterval(timerInterval); timerRunning = false;
+    document.getElementById('timerPlayBtn').textContent = '▶';
+    document.getElementById('timerDisplay').classList.remove('running');
+  } else {
+    timerRunning = true; timerStartedAt = Date.now();
+    document.getElementById('timerPlayBtn').textContent = '⏸';
+    document.getElementById('timerDisplay').classList.add('running');
+    timerInterval = setInterval(() => {
+      timerLeft--;
+      renderTimerDisplay();
+      if (timerLeft <= 0) {
+        clearInterval(timerInterval); timerRunning = false;
+        document.getElementById('timerPlayBtn').textContent = '▶';
+        document.getElementById('timerDisplay').classList.remove('running');
+        if (timerMode === 'focus') logSession(MODES.focus / 60);
+        try { new Notification('Timer complete', { body: timerMode === 'focus' ? 'Focus session done — take a break.' : 'Break over. Back to it.' }); } catch {}
+      }
+    }, 1000);
+  }
+}
+
+function resetTimer() {
+  clearInterval(timerInterval); timerRunning = false;
+  timerLeft = MODES[timerMode];
+  document.getElementById('timerPlayBtn').textContent = '▶';
+  document.getElementById('timerDisplay').classList.remove('running');
+  renderTimerDisplay();
+}
+
+function skipTimer() {
+  const wasRunning = timerRunning;
+  clearInterval(timerInterval); timerRunning = false;
+  document.getElementById('timerDisplay').classList.remove('running');
+  if (timerMode === 'focus') {
+    if (wasRunning && timerStartedAt) {
+      const elapsed = Math.round((Date.now() - timerStartedAt) / 60000);
+      if (elapsed >= 5) logSession(elapsed);
+    }
+    setMode('short');
+  } else {
+    setMode('focus');
+  }
+}
+
+function logSession(mins) {
+  const tk = todayKey();
+  const sessions = LS.get('cfa:sessions', {});
+  sessions[tk] = sessions[tk] || [];
+  sessions[tk].push(Math.round(mins));
+  LS.set('cfa:sessions', sessions);
+  renderTimerStats();
+}
+
+// ── Mock scores ──────────────────────────────────────────────
+function addScore() {
+  const val = parseInt(document.getElementById('scoreInput').value);
+  if (isNaN(val) || val < 0 || val > 100) return;
+  const label = document.getElementById('scoreLabelInput').value.trim() ||
+    ('Mock ' + (LS.get('cfa:scores', []).length + 1));
+  const scores = LS.get('cfa:scores', []);
+  scores.push({ score: val, label, date: todayKey() });
+  LS.set('cfa:scores', scores);
+  document.getElementById('scoreInput').value = '';
+  document.getElementById('scoreLabelInput').value = '';
+  renderScores();
+}
+
+function deleteScore(i) {
+  const scores = LS.get('cfa:scores', []);
+  scores.splice(i, 1);
+  LS.set('cfa:scores', scores);
+  renderScores();
+}
+
+function renderScores() {
+  const scores = LS.get('cfa:scores', []);
+  const avgEl  = document.getElementById('scoreAvg');
+  const chart  = document.getElementById('scoreChart');
+  const history = document.getElementById('scoreHistory');
+
+  if (!scores.length) {
+    avgEl.textContent = '—';
+    avgEl.style.color = '';
+    chart.innerHTML = '<div style="width:100%;text-align:center;color:var(--text-3);font-size:13px;align-self:center;">No scores yet — log your first mock below</div>';
+    history.innerHTML = '';
+    return;
+  }
+
+  const avg = Math.round(scores.reduce((a,s) => a+s.score, 0) / scores.length);
+  avgEl.textContent = avg + '%';
+  avgEl.style.color = avg >= 70 ? 'var(--good)' : 'var(--bad)';
+
+  // Bar chart (last 10)
+  const recent = scores.slice(-10);
+  const maxH = 72;
+  chart.innerHTML = recent.map(s => {
+    const h = Math.max(4, Math.round(s.score / 100 * maxH));
+    return `<div class="score-bar-wrap" title="${s.label}: ${s.score}%">
+      <div class="score-bar${s.score<70?' fail':''}" style="height:${h}px"></div>
+      <div class="score-bar-val">${s.score}</div>
+      <div class="score-bar-lbl">${s.label}</div>
+    </div>`;
+  }).join('');
+
+  // Threshold line position (70% of 72px = 50.4px from bottom)
+  const thresholdBottom = Math.round(70/100*maxH);
+  const wrap = document.getElementById('scoreChartWrap');
+  let line = wrap.querySelector('.score-threshold-line');
+  if (!line) { line = document.createElement('div'); line.className = 'score-threshold-line'; wrap.insertBefore(line, chart); }
+  line.style.bottom = thresholdBottom + 'px';
+
+  // History list (most recent first)
+  history.innerHTML = scores.slice().reverse().map((s, ri) => {
+    const i = scores.length - 1 - ri;
+    return `<div class="score-row">
+      <span class="score-row-lbl">${s.label} <span style="color:var(--text-3);font-size:11px;">${s.date}</span></span>
+      <span style="display:flex;align-items:center;gap:10px;">
+        <span class="score-row-val ${s.score>=70?'pass':'fail'}">${s.score}%</span>
+        <span class="score-del" onclick="deleteScore(${i})" title="Delete">×</span>
+      </span>
+    </div>`;
+  }).join('');
+}
+
+// ── AI Tutor ─────────────────────────────────────────────────
+const TUTOR_SYS = `You are an expert CFA Level 2 tutor. The user is preparing for the CFA Level 2 exam.
+
+Guidelines:
+- Answer concisely and exam-focused. No padding.
+- Include formulas in plain text notation (e.g. V0 = D1/(k-g)).
+- Flag common exam traps and vignette-specific nuances.
+- When asked for a practice question, write a realistic item-set vignette with 3-4 questions and full worked solutions.
+- Use bullet points for lists. Keep explanations scannable.`;
+
+let tutorHistory = [];
+let tutorKey = LS.get('cfa:tutor_key', '');
+
+function saveKey() {
+  const k = document.getElementById('tutorKeyInput').value.trim();
+  if (!k) return;
+  tutorKey = k;
+  LS.set('cfa:tutor_key', k);
+  document.getElementById('tutorKeySection').style.display = 'none';
+  appendMsg('assistant', 'API key saved. What would you like to study?');
+}
+
+function appendMsg(role, text) {
+  const msgs = document.getElementById('tutorMessages');
+  const div = document.createElement('div');
+  div.className = 'tutor-msg ' + role;
+  div.textContent = text;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+function quickAsk(text) {
+  document.getElementById('tutorInput').value = text;
+  sendTutor();
+}
+
+async function sendTutor() {
+  const input = document.getElementById('tutorInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  if (!tutorKey) {
+    appendMsg('assistant', 'Paste your Anthropic API key above first. Get one at console.anthropic.com/settings/keys');
+    return;
+  }
+
+  input.value = '';
+  appendMsg('user', text);
+  tutorHistory.push({ role: 'user', content: text });
+
+  const btn = document.getElementById('tutorSendBtn');
+  btn.disabled = true;
+  const thinking = appendMsg('assistant thinking', 'Thinking…');
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': tutorKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1200,
+        system: TUTOR_SYS,
+        messages: tutorHistory,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error?.message || res.statusText);
+    const reply = data.content?.[0]?.text || '';
+    thinking.className = 'tutor-msg assistant';
+    thinking.textContent = reply;
+    tutorHistory.push({ role: 'assistant', content: reply });
+    if (tutorHistory.length > 20) tutorHistory = tutorHistory.slice(-20);
+  } catch (e) {
+    thinking.className = 'tutor-msg assistant';
+    thinking.textContent = 'Error: ' + e.message;
+  }
+
+  btn.disabled = false;
+  document.getElementById('tutorMessages').scrollTop = 99999;
+}
+
+function clearChat() {
+  tutorHistory = [];
+  const msgs = document.getElementById('tutorMessages');
+  msgs.innerHTML = '<div class="tutor-msg assistant">Conversation cleared. What would you like to study?</div>';
+}
+
+// ── Init ─────────────────────────────────────────────────────
+renderTopics();
+renderCountdown();
+renderTimerDisplay();
+renderTimerStats();
+renderScores();
+if (tutorKey) document.getElementById('tutorKeySection').style.display = 'none';
+</script>
+</body>
+</html>
