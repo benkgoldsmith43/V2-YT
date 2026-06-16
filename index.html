@@ -125,6 +125,127 @@ body::after {
 }
 .tile:hover .tile-arrow { transform: translateX(4px); }
 
+/* ===== TODAY STRIP ===== */
+.today-strip {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.today-stat {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px;
+  padding: 12px 10px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.today-stat::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--ts-accent,#ffffff) 14%, transparent), transparent 70%);
+  pointer-events: none;
+}
+.today-stat-val {
+  font-size: 20px; font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+  line-height: 1; letter-spacing: -0.02em;
+}
+.today-stat-lbl {
+  font-size: 9.5px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--text-tertiary);
+  margin-top: 5px;
+}
+.today-stat-sub {
+  font-size: 11px; color: var(--text-tertiary);
+  margin-top: 2px; font-variant-numeric: tabular-nums;
+}
+.today-header {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.today-date {
+  font-size: 13px; font-weight: 600; color: var(--text-tertiary);
+}
+.week-review-btn {
+  font-size: 12px; font-weight: 700; letter-spacing: 0.04em;
+  color: var(--text-tertiary); background: none; border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 99px; padding: 4px 12px; cursor: pointer;
+  font-family: inherit; transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.week-review-btn:hover { color: var(--text-primary); border-color: rgba(255,255,255,0.25); }
+@media (max-width: 600px) {
+  .today-strip { grid-template-columns: repeat(3, 1fr); }
+  .today-stat:nth-child(4), .today-stat:nth-child(5) {
+    grid-column: span 1;
+  }
+}
+@media (max-width: 380px) {
+  .today-strip { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ===== WEEK REVIEW MODAL ===== */
+.wr-modal-bg {
+  position: fixed; inset: 0; z-index: 120; display: none;
+  align-items: flex-end; justify-content: center;
+  background: rgba(0,0,0,0.65); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+}
+.wr-modal-bg.show { display: flex; }
+.wr-modal {
+  width: 100%; max-width: 540px; max-height: 82vh; overflow-y: auto;
+  background: #0e0e10; border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px 20px 0 0; padding: 22px 20px 36px;
+  box-shadow: 0 -20px 60px rgba(0,0,0,0.5);
+  overscroll-behavior: contain;
+}
+@media (min-width: 540px) {
+  .wr-modal-bg { align-items: center; }
+  .wr-modal { border-radius: 18px; }
+}
+.wr-head {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;
+}
+.wr-title { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+.wr-close {
+  border: 0; background: transparent; color: var(--text-tertiary);
+  font-size: 26px; line-height: 1; cursor: pointer; padding: 0 4px;
+}
+.wr-section { margin-bottom: 18px; }
+.wr-section-title {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.10em;
+  text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 10px;
+}
+.wr-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+  font-size: 14px;
+}
+.wr-row:last-child { border-bottom: none; }
+.wr-row-label { color: var(--text-secondary); }
+.wr-row-val { font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.wr-divider { height: 1px; background: rgba(255,255,255,0.06); margin: 14px 0; }
+.wr-ai-box {
+  background: rgba(167,139,250,0.06); border: 1px solid rgba(167,139,250,0.15);
+  border-radius: 12px; padding: 14px; margin-top: 14px;
+}
+.wr-ai-text {
+  font-size: 14px; line-height: 1.6; color: var(--text-secondary);
+  white-space: pre-wrap;
+}
+.wr-ai-btn {
+  width: 100%; margin-top: 12px; padding: 12px;
+  background: linear-gradient(135deg, rgba(129,140,248,0.25), rgba(167,139,250,0.25));
+  border: 1px solid rgba(167,139,250,0.3);
+  border-radius: 11px; color: #c4b5fd;
+  font-family: inherit; font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: all 0.15s;
+}
+.wr-ai-btn:active { transform: scale(0.97); }
+.wr-ai-btn:disabled { opacity: 0.5; }
+
 /* ===== Responsive: collapse the bento on small screens ===== */
 @media (max-width: 720px) {
   .bento { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 150px; }
@@ -208,6 +329,39 @@ body::after {
 </head>
 <body>
 <div class="page">
+
+  <!-- TODAY STRIP -->
+  <div class="today-header">
+    <span class="today-date" id="todayDate"></span>
+    <button class="week-review-btn" onclick="openWeekReview()">Week Review</button>
+  </div>
+  <div class="today-strip">
+    <div class="today-stat" style="--ts-accent:#6BE3A4">
+      <div class="today-stat-val" id="ts-goals">—</div>
+      <div class="today-stat-lbl">Goals</div>
+      <div class="today-stat-sub" id="ts-goals-sub"></div>
+    </div>
+    <div class="today-stat" style="--ts-accent:#60A5FA">
+      <div class="today-stat-val" id="ts-water">—</div>
+      <div class="today-stat-lbl">Water</div>
+      <div class="today-stat-sub" id="ts-water-sub"></div>
+    </div>
+    <div class="today-stat" style="--ts-accent:#a78bfa">
+      <div class="today-stat-val" id="ts-study">—</div>
+      <div class="today-stat-lbl">Study</div>
+      <div class="today-stat-sub" id="ts-study-sub"></div>
+    </div>
+    <div class="today-stat" style="--ts-accent:#6BE3A4">
+      <div class="today-stat-val" id="ts-recovery">—</div>
+      <div class="today-stat-lbl">Recovery</div>
+      <div class="today-stat-sub" id="ts-recovery-sub"></div>
+    </div>
+    <div class="today-stat" style="--ts-accent:#a78bfa">
+      <div class="today-stat-val" id="ts-exam">—</div>
+      <div class="today-stat-lbl">Exam</div>
+      <div class="today-stat-sub">days left</div>
+    </div>
+  </div>
 
   <div class="hub-head">
     <h1 class="dash-title">Ben's Dashboard</h1>
@@ -319,6 +473,31 @@ body::after {
       </div>
     </a>
 
+    <!-- CFA tile -->
+    <a class="tile wide" href="cfa.html" style="--accent:#818cf8">
+      <div class="tile-top">
+        <span class="tile-num">·08</span>
+        <span class="tile-emoji">📚</span>
+      </div>
+      <div class="tile-spacer"></div>
+      <h2 class="tile-title">CFA L2</h2>
+      <div class="tile-foot">
+        <span class="tile-sub" id="cfa-tile-sub">Study · Timer · AI Tutor</span>
+        <span class="tile-arrow">→</span>
+      </div>
+    </a>
+
+  </div>
+</div>
+
+<!-- ===== Week Review Modal ===== -->
+<div class="wr-modal-bg" id="wrBg">
+  <div class="wr-modal">
+    <div class="wr-head">
+      <span class="wr-title">Week in Review</span>
+      <button class="wr-close" onclick="closeWeekReview()">×</button>
+    </div>
+    <div id="wrContent"></div>
   </div>
 </div>
 
@@ -391,6 +570,231 @@ body::after {
     </div>
   </div>
 </div>
+
+<script>
+// ===== TODAY STRIP + WEEK REVIEW =====
+(function () {
+  function lsGet(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } }
+
+  function todayStr() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+  function activeDate() {
+    const now = new Date();
+    if (now.getHours() < 6) now.setDate(now.getDate() - 1);
+    return now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+  }
+  function weekStartStr() {
+    const d = new Date(); d.setDate(d.getDate() - d.getDay());
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+
+  // Date label
+  const dateEl = document.getElementById('todayDate');
+  if (dateEl) {
+    const now = new Date();
+    dateEl.textContent = now.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+  }
+
+  function renderToday() {
+    const tk = todayStr(), ak = activeDate();
+
+    // Goals
+    const goals = lsGet('goals:' + ak, []);
+    const gDone = Array.isArray(goals) ? goals.filter(g => g && g.done).length : 0;
+    const gTotal = Array.isArray(goals) ? goals.length : 0;
+    const tsGoals = document.getElementById('ts-goals');
+    const tsGoalsSub = document.getElementById('ts-goals-sub');
+    if (tsGoals) tsGoals.textContent = gTotal ? gDone + '/' + gTotal : '—';
+    if (tsGoalsSub) tsGoalsSub.textContent = gTotal ? (gDone === gTotal ? 'all done ✓' : gTotal - gDone + ' left') : 'none set';
+
+    // Water
+    const water = lsGet('po_water_v1', null);
+    const tsWater = document.getElementById('ts-water');
+    const tsWaterSub = document.getElementById('ts-water-sub');
+    if (water && tsWater) {
+      const done = (water.logs || {})[tk] || 0;
+      const p = water.profile || {};
+      const wKg = water.weightUnit === 'lb' ? (p.weightKg||75)/2.20462 : (p.weightKg||75);
+      const totalMl = wKg*35 + (p.activityHrsPerWeek||0)/7*500;
+      const unitVol = water.unit==='glass' ? (water.glassMl||250) : (water.bottleMl||500);
+      const total = Math.max(1, Math.ceil(totalMl/unitVol));
+      tsWater.textContent = done + '/' + total;
+      if (tsWaterSub) tsWaterSub.textContent = done >= total ? 'target hit ✓' : total-done + ' to go';
+    } else if (tsWater) { tsWater.textContent = '—'; }
+
+    // CFA study time today
+    const sessions = lsGet('cfa:sessions', {});
+    const todaySess = sessions[tk] || [];
+    const todayMins = todaySess.reduce((a,v) => a+v, 0);
+    const tsStudy = document.getElementById('ts-study');
+    const tsStudySub = document.getElementById('ts-study-sub');
+    if (tsStudy) tsStudy.textContent = todayMins >= 60 ? Math.floor(todayMins/60) + 'h ' + (todayMins%60) + 'm' : todayMins + 'm';
+    if (tsStudySub) tsStudySub.textContent = todaySess.length + ' session' + (todaySess.length===1?'':'s');
+
+    // WHOOP recovery
+    const whoop = lsGet('whoop_cache_v1', null) || lsGet('whoop_last_data', null);
+    const tsRec = document.getElementById('ts-recovery');
+    const tsRecSub = document.getElementById('ts-recovery-sub');
+    if (whoop && whoop.rec != null && tsRec) {
+      tsRec.textContent = whoop.rec + '%';
+      const r = whoop.rec;
+      if (tsRecSub) tsRecSub.textContent = r >= 67 ? 'green 🟢' : r >= 34 ? 'yellow 🟡' : 'red 🔴';
+    } else if (tsRec) { tsRec.textContent = '—'; if (tsRecSub) tsRecSub.textContent = 'no WHOOP data'; }
+
+    // Exam countdown
+    const examDate = lsGet('cfa:exam_date', '');
+    const tsExam = document.getElementById('ts-exam');
+    if (examDate && tsExam) {
+      const now2 = new Date(); now2.setHours(0,0,0,0);
+      const exam = new Date(examDate + 'T00:00:00');
+      tsExam.textContent = Math.max(0, Math.ceil((exam-now2)/86400000));
+    } else if (tsExam) { tsExam.textContent = '—'; }
+
+    // CFA tile sub-label
+    const cfaSub = document.getElementById('cfa-tile-sub');
+    if (cfaSub && todayMins > 0) {
+      const examDate2 = lsGet('cfa:exam_date','');
+      if (examDate2) {
+        const now3 = new Date(); now3.setHours(0,0,0,0);
+        const days = Math.max(0, Math.ceil((new Date(examDate2+'T00:00:00')-now3)/86400000));
+        cfaSub.textContent = todayMins + 'm studied · ' + days + 'd to exam';
+      } else {
+        cfaSub.textContent = todayMins + 'm studied today';
+      }
+    }
+  }
+
+  renderToday();
+  window.addEventListener('storage', renderToday);
+
+  // ===== WEEK REVIEW =====
+  window.openWeekReview = function () {
+    const ws = weekStartStr(), tk = todayStr();
+    const sessions = lsGet('cfa:sessions', {});
+    const scores = lsGet('cfa:scores', []);
+    const topics = lsGet('cfa:topics', {});
+    const examDate = lsGet('cfa:exam_date', '');
+
+    // Study hours this week
+    let weekMins = 0, weekSessions = 0;
+    for (const [k,v] of Object.entries(sessions)) {
+      if (k >= ws) { weekMins += v.reduce((a,x)=>a+x,0); weekSessions += v.length; }
+    }
+
+    // Goals this week
+    let goalsDone = 0, goalsTotal = 0;
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(); d.setDate(d.getDate()-i);
+      const dk = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+      const g = lsGet('goals:'+dk, []);
+      if (Array.isArray(g) && g.length) { goalsTotal += g.length; goalsDone += g.filter(x=>x&&x.done).length; }
+    }
+
+    // Water average this week
+    const water = lsGet('po_water_v1', null);
+    let waterDays = 0, waterTotal = 0;
+    if (water && water.logs) {
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(); d.setDate(d.getDate()-i);
+        const dk = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+        if (water.logs[dk] != null) { waterTotal += water.logs[dk]; waterDays++; }
+      }
+    }
+
+    // Topics done
+    const topicsDone = Object.values(topics).filter(Boolean).length;
+    const topicsAll = 32;
+
+    // Exam days
+    let examDays = '—';
+    if (examDate) {
+      const now = new Date(); now.setHours(0,0,0,0);
+      examDays = Math.max(0, Math.ceil((new Date(examDate+'T00:00:00')-now)/86400000)) + ' days';
+    }
+
+    // Recent mock scores
+    const recentScores = scores.slice(-3);
+
+    const html = `
+      <div class="wr-section">
+        <div class="wr-section-title">CFA Study</div>
+        <div class="wr-row"><span class="wr-row-label">Study time this week</span><span class="wr-row-val">${Math.floor(weekMins/60)}h ${weekMins%60}m</span></div>
+        <div class="wr-row"><span class="wr-row-label">Focus sessions</span><span class="wr-row-val">${weekSessions}</span></div>
+        <div class="wr-row"><span class="wr-row-label">Topics complete</span><span class="wr-row-val">${topicsDone}/${topicsAll}</span></div>
+        <div class="wr-row"><span class="wr-row-label">Exam countdown</span><span class="wr-row-val">${examDays}</span></div>
+        ${recentScores.length ? '<div class="wr-row"><span class="wr-row-label">Recent mock scores</span><span class="wr-row-val">' + recentScores.map(s=>s.score+'%').join(' · ') + '</span></div>' : ''}
+      </div>
+      <div class="wr-divider"></div>
+      <div class="wr-section">
+        <div class="wr-section-title">Daily Habits</div>
+        <div class="wr-row"><span class="wr-row-label">Goals completed</span><span class="wr-row-val">${goalsDone}/${goalsTotal}</span></div>
+        ${waterDays ? '<div class="wr-row"><span class="wr-row-label">Avg water per day</span><span class="wr-row-val">' + (waterTotal/waterDays).toFixed(1) + ' units</span></div>' : ''}
+      </div>
+      <div class="wr-ai-box">
+        <div class="wr-ai-text" id="wrAiText">Generate an AI summary of your week →</div>
+        <button class="wr-ai-btn" id="wrAiBtn" onclick="generateWrSummary(${weekMins},${weekSessions},${topicsDone},${goalsDone},${goalsTotal},'${examDays}')">
+          Generate AI Summary
+        </button>
+      </div>`;
+
+    document.getElementById('wrContent').innerHTML = html;
+    document.getElementById('wrBg').classList.add('show');
+    document.body.classList.add('topbar-modal-open');
+  };
+
+  window.closeWeekReview = function () {
+    document.getElementById('wrBg').classList.remove('show');
+    document.body.classList.remove('topbar-modal-open');
+  };
+  document.getElementById('wrBg').addEventListener('click', e => {
+    if (e.target === document.getElementById('wrBg')) window.closeWeekReview();
+  });
+
+  window.generateWrSummary = async function (weekMins, sessions, topicsDone, goalsDone, goalsTotal, examDays) {
+    const key = lsGet('cfa:tutor_key', '');
+    const textEl = document.getElementById('wrAiText');
+    const btn = document.getElementById('wrAiBtn');
+    if (!key) {
+      textEl.textContent = 'Add your Anthropic API key on the CFA tab first.';
+      return;
+    }
+    btn.disabled = true;
+    textEl.textContent = 'Generating…';
+    const prompt = `Give me a brief, motivating week-in-review summary for a CFA Level 2 candidate. Here's the data:
+- Study time this week: ${Math.floor(weekMins/60)}h ${weekMins%60}m (${sessions} focus sessions)
+- CFA topics complete: ${topicsDone}/32
+- Daily goals hit: ${goalsDone}/${goalsTotal}
+- Exam countdown: ${examDays}
+
+Keep it under 80 words. Be direct and practical — what went well, what to push on next week. No fluff.`;
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': key,
+          'anthropic-version': '2023-06-01',
+          'content-type': 'application/json',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 200,
+          messages: [{ role: 'user', content: prompt }],
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error?.message || res.statusText);
+      textEl.textContent = data.content?.[0]?.text || '';
+    } catch (e) {
+      textEl.textContent = 'Error: ' + e.message;
+    }
+    btn.disabled = false;
+    btn.textContent = 'Regenerate';
+  };
+})();
+</script>
 
 <script>
 (function () {
