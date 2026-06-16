@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy — Ben's Dashboard</title>
+<style>
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: #050506;
+  color: #B8B6B0;
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+body { padding: 40px 20px 80px; }
+.page { max-width: 640px; margin: 0 auto; }
+h1 {
+  font-size: 26px; font-weight: 700; letter-spacing: -0.02em;
+  color: #FAFAFA; margin: 0 0 6px;
+}
+.updated { font-size: 13px; color: #76746E; margin-bottom: 36px; }
+h2 { font-size: 15px; font-weight: 700; color: #FAFAFA; margin: 28px 0 8px; }
+p, li { font-size: 14px; line-height: 1.7; margin: 0 0 10px; }
+ul { padding-left: 20px; margin: 0 0 10px; }
+a { color: #818cf8; text-decoration: none; }
+.back { display: inline-block; margin-bottom: 28px; font-size: 13px; color: #76746E; }
+.back:hover { color: #FAFAFA; }
+</style>
+</head>
+<body>
+<div class="page">
+  <a class="back" href="index.html">← Back to Dashboard</a>
+  <h1>Privacy Policy</h1>
+  <p class="updated">Last updated: June 2026</p>
+
+  <h2>Overview</h2>
+  <p>This is a personal dashboard application used solely by its owner. It is not a commercial product and does not collect, sell, or share any personal data with third parties.</p>
+
+  <h2>Data Storage</h2>
+  <p>All data entered into this dashboard (goals, health metrics, finances, study progress, etc.) is stored either:</p>
+  <ul>
+    <li>Locally in your browser via <code>localStorage</code>, or</li>
+    <li>In a private Supabase database accessible only to the dashboard owner.</li>
+  </ul>
+  <p>No data is shared with any third party, sold, or used for advertising.</p>
+
+  <h2>WHOOP Integration</h2>
+  <p>This app connects to the WHOOP API to display recovery, sleep, and heart rate data. When you authorize this connection:</p>
+  <ul>
+    <li>WHOOP OAuth tokens are stored only in your browser's <code>localStorage</code>.</li>
+    <li>Health data fetched from WHOOP is displayed on-screen and optionally cached in your private Supabase database.</li>
+    <li>No WHOOP data is transmitted to any server other than the WHOOP API itself and your own Supabase instance.</li>
+  </ul>
+
+  <h2>API Keys</h2>
+  <p>Any API keys you enter (e.g. Anthropic) are stored only in your browser's <code>localStorage</code> and are never sent to any server other than the respective API provider.</p>
+
+  <h2>Cookies</h2>
+  <p>This app does not use cookies for tracking or advertising. Session state is managed via <code>sessionStorage</code> and <code>localStorage</code> only.</p>
+
+  <h2>Third-Party Services</h2>
+  <ul>
+    <li><strong>WHOOP</strong> — health data API. Subject to <a href="https://www.whoop.com/privacy" target="_blank" rel="noopener">WHOOP's privacy policy</a>.</li>
+    <li><strong>Supabase</strong> — database hosting. Subject to <a href="https://supabase.com/privacy" target="_blank" rel="noopener">Supabase's privacy policy</a>.</li>
+    <li><strong>Anthropic</strong> — AI API. Subject to <a href="https://www.anthropic.com/privacy" target="_blank" rel="noopener">Anthropic's privacy policy</a>.</li>
+    <li><strong>Vercel</strong> — hosting. Subject to <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener">Vercel's privacy policy</a>.</li>
+  </ul>
+
+  <h2>Contact</h2>
+  <p>This dashboard is a private personal project. For questions, contact the owner directly.</p>
+</div>
+</body>
+</html>
