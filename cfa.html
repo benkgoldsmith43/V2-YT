@@ -399,9 +399,10 @@ body::before {
   <div class="section-title">Study Timer</div>
   <div class="card">
     <div class="timer-mode-row">
-      <button class="timer-mode-btn active" data-mode="focus" onclick="setMode('focus')">Focus 25m</button>
+      <button class="timer-mode-btn active" data-mode="focus" onclick="setMode('focus')">25m</button>
+      <button class="timer-mode-btn" data-mode="deep" onclick="setMode('deep')">50m</button>
       <button class="timer-mode-btn" data-mode="short" onclick="setMode('short')">Break 5m</button>
-      <button class="timer-mode-btn" data-mode="long" onclick="setMode('long')">Long 15m</button>
+      <button class="timer-mode-btn" data-mode="long" onclick="setMode('long')">15m</button>
     </div>
     <div class="timer-display" id="timerDisplay">25:00</div>
     <div class="timer-controls">
@@ -662,7 +663,7 @@ document.getElementById('studyStartInput').addEventListener('change', e => {
 });
 
 // ── Timer ────────────────────────────────────────────────────
-const MODES = { focus: 25*60, short: 5*60, long: 15*60 };
+const MODES = { focus: 25*60, deep: 50*60, short: 5*60, long: 15*60 };
 let timerMode = 'focus', timerLeft = MODES.focus;
 let timerRunning = false, timerInterval = null, timerStartedAt = null;
 
@@ -712,7 +713,7 @@ function toggleTimer() {
         clearInterval(timerInterval); timerRunning = false;
         document.getElementById('timerPlayBtn').textContent = '▶';
         document.getElementById('timerDisplay').classList.remove('running');
-        if (timerMode === 'focus') logSession(MODES.focus / 60);
+        if (timerMode === 'focus' || timerMode === 'deep') logSession(MODES[timerMode] / 60);
         try { new Notification('Timer complete', { body: timerMode === 'focus' ? 'Focus session done — take a break.' : 'Break over. Back to it.' }); } catch {}
       }
     }, 1000);
