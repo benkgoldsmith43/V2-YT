@@ -685,12 +685,21 @@ function playDone() {
 
 // ── Timer ────────────────────────────────────────────────────
 const MODES = { focus: 25*60, deep: 50*60, short: 5*60, long: 15*60 };
-let timerMode = 'focus', timerLeft = MODES.focus;
-let timerRunning = false, timerInterval = null, timerStartedAt = null;
+let timerMode = 'focus';
+let timerRunning = false, timerInterval = null;
+let timerStartedAt = null;   // wall-clock when current run began
+let timerAccumSecs = 0;      // seconds accumulated before current run (survives pause)
+
+function secsElapsed() {
+  return timerAccumSecs + (timerRunning ? Math.floor((Date.now() - timerStartedAt) / 1000) : 0);
+}
+function secsLeft() {
+  return Math.max(0, MODES[timerMode] - secsElapsed());
+}
 
 function setMode(m) {
-  clearInterval(timerInterval); timerRunning = false;
-  timerMode = m; timerLeft = MODES[m];
+  stopTick(); timerRunning = false;
+  timerMode = m; timerAccumSecs = 0; timerStartedAt = null;
   document.querySelectorAll('.timer-mode-btn').forEach(b =>
     b.classList.toggle('active', b.dataset.mode === m));
   document.getElementById('timerPlayBtn').textContent = '▶';
@@ -699,7 +708,8 @@ function setMode(m) {
 }
 
 function renderTimerDisplay() {
-  const m = Math.floor(timerLeft/60), s = timerLeft%60;
+  const left = secsLeft();
+  const m = Math.floor(left/60), s = left%60;
   document.getElementById('timerDisplay').textContent =
     String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
 }
@@ -718,51 +728,60 @@ function renderTimerStats() {
   document.getElementById('timerWeek').textContent = Math.floor(weekMins/60) + 'h';
 }
 
+function stopTick() { clearInterval(timerInterval); timerInterval = null; }
+
+function startTick() {
+  timerInterval = setInterval(() => {
+    renderTimerDisplay();
+    if (secsLeft() <= 0) {
+      stopTick(); timerRunning = false;
+      document.getElementById('timerPlayBtn').textContent = '▶';
+      document.getElementById('timerDisplay').classList.remove('running');
+      const studyMode = timerMode === 'focus' || timerMode === 'deep';
+      if (studyMode) logSession(MODES[timerMode] / 60);
+      timerAccumSecs = 0; timerStartedAt = null;
+      playDone();
+      try { new Notification('Timer complete', { body: studyMode ? 'Session done — take a break.' : 'Break over. Back to it.' }); } catch {}
+    }
+  }, 500); // 500ms tick = display stays accurate even if a tick is late
+}
+
 function toggleTimer() {
   if (timerRunning) {
-    clearInterval(timerInterval); timerRunning = false;
+    // Pause — bank the elapsed seconds
+    timerAccumSecs = secsElapsed();
+    timerStartedAt = null;
+    timerRunning = false; stopTick();
     document.getElementById('timerPlayBtn').textContent = '▶';
     document.getElementById('timerDisplay').classList.remove('running');
   } else {
     timerRunning = true; timerStartedAt = Date.now();
     document.getElementById('timerPlayBtn').textContent = '⏸';
     document.getElementById('timerDisplay').classList.add('running');
-    timerInterval = setInterval(() => {
-      timerLeft--;
-      renderTimerDisplay();
-      if (timerLeft <= 0) {
-        clearInterval(timerInterval); timerRunning = false;
-        document.getElementById('timerPlayBtn').textContent = '▶';
-        document.getElementById('timerDisplay').classList.remove('running');
-        if (timerMode === 'focus' || timerMode === 'deep') logSession(MODES[timerMode] / 60);
-        playDone();
-        try { new Notification('Timer complete', { body: timerMode === 'focus' ? 'Focus session done — take a break.' : 'Break over. Back to it.' }); } catch {}
-      }
-    }, 1000);
+    startTick();
   }
 }
 
 function resetTimer() {
-  clearInterval(timerInterval); timerRunning = false;
-  timerLeft = MODES[timerMode];
+  // Log partial session if at least 5 min of study time was accumulated
+  const studyMode = timerMode === 'focus' || timerMode === 'deep';
+  const mins = Math.floor(secsElapsed() / 60);
+  if (studyMode && mins >= 5) logSession(mins);
+  stopTick(); timerRunning = false;
+  timerAccumSecs = 0; timerStartedAt = null;
   document.getElementById('timerPlayBtn').textContent = '▶';
   document.getElementById('timerDisplay').classList.remove('running');
   renderTimerDisplay();
 }
 
 function skipTimer() {
-  const wasRunning = timerRunning;
-  clearInterval(timerInterval); timerRunning = false;
+  const studyMode = timerMode === 'focus' || timerMode === 'deep';
+  const mins = Math.floor(secsElapsed() / 60);
+  if (studyMode && mins >= 5) logSession(mins);
+  stopTick(); timerRunning = false;
+  timerAccumSecs = 0; timerStartedAt = null;
   document.getElementById('timerDisplay').classList.remove('running');
-  if (timerMode === 'focus') {
-    if (wasRunning && timerStartedAt) {
-      const elapsed = Math.round((Date.now() - timerStartedAt) / 60000);
-      if (elapsed >= 5) logSession(elapsed);
-    }
-    setMode('short');
-  } else {
-    setMode('focus');
-  }
+  setMode(studyMode ? 'short' : 'focus');
 }
 
 function logSession(mins) {
