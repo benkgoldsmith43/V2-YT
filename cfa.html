@@ -662,6 +662,27 @@ document.getElementById('studyStartInput').addEventListener('change', e => {
   renderCountdown();
 });
 
+// ── Timer sound ─────────────────────────────────────────────
+function playDone() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const beeps = timerMode === 'short' || timerMode === 'long'
+      ? [{ f: 520, t: 0, d: 0.15 }]
+      : [{ f: 660, t: 0, d: 0.15 }, { f: 660, t: 0.2, d: 0.15 }, { f: 880, t: 0.4, d: 0.3 }];
+    beeps.forEach(({ f, t, d }) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.value = f;
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0.4, ctx.currentTime + t);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + d);
+      osc.start(ctx.currentTime + t);
+      osc.stop(ctx.currentTime + t + d + 0.05);
+    });
+  } catch (e) {}
+}
+
 // ── Timer ────────────────────────────────────────────────────
 const MODES = { focus: 25*60, deep: 50*60, short: 5*60, long: 15*60 };
 let timerMode = 'focus', timerLeft = MODES.focus;
@@ -714,6 +735,7 @@ function toggleTimer() {
         document.getElementById('timerPlayBtn').textContent = '▶';
         document.getElementById('timerDisplay').classList.remove('running');
         if (timerMode === 'focus' || timerMode === 'deep') logSession(MODES[timerMode] / 60);
+        playDone();
         try { new Notification('Timer complete', { body: timerMode === 'focus' ? 'Focus session done — take a break.' : 'Break over. Back to it.' }); } catch {}
       }
     }, 1000);
